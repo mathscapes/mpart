@@ -1,5 +1,4 @@
-
-#importing abaqus libraries
+# Importing ABAQUS libraries
 from part import *
 from material import *
 from section import *
@@ -15,38 +14,42 @@ from visualization import *
 from connectorBehavior import *
 
 
+# Settings
 
-#Settings		
-Te = [23, 90, -100]				#Temperature values
-
-#Model Name
-Mod = 'Model-1B'
-NodeS = 'Node PROJ-1.1103'
-Stepname = 'Step-1'
-Varb = ['V3', 'U3', 'RF']
-Partname = ['PROJ-1']
-
-#Sample list Stacking sequence/Jobs nomenclature
-LamN = [ 'CP1', 'CP2', 'CP3', 'CP4', 'QP1', 'QP2', 'AP1', 'AP2', 'AP3', 'AP4']
-
-#modelname = 'Model-1'
-j = 0
-newfile = open('results.csv','w+')
+# Temperature values
+Te 		= [23, 90, -100]
 
 
-#Utility Variables
-allVels = []
-allDisp = []
-allF = []
-allT0 = []
+# Model Name
+Mod	 	= 'Model-1B'
+NodeS 		= 'Node PROJ-1.1103'
+Stepname 	= 'Step-1'
+Varb 		= ['V3', 'U3', 'RF']
+Partname 	= ['PROJ-1']
 
-for v in range (0,1):							#Loop 1 for different Temperatures
+# Sample list Stacking sequence/Jobs nomenclature
+LamN 		= [ 'CP1', 'CP2', 'CP3', 'CP4', 'QP1', 'QP2', 'AP1', 'AP2', 'AP3', 'AP4']
+
+# modelname 	= 'Model-1'
+j 		= 0
+newfile 	= open('results.csv','w+')
+
+
+# Utility Variables
+allVels 	= []
+allDisp 	= []
+allF 		= []
+allT0 		= []
+
+# Loop 1 for different Temperatures
+for v in range (0,1):							
 
 	print('Assigning Temperature...')
 	impvel = Te[v]
 	print(impvel)
 
-	for o in range (3,len(LamN)):				#Loop 2 for different Stacking Sequences/Jobs
+	# Loop 2 for different Stacking Sequences/Jobs
+	for o in range (3,len(LamN)):				
 		j = j+1
 		print('Job No. ' + str(j))
 		print('Assigning Laminate Sequence...')
@@ -57,26 +60,29 @@ for v in range (0,1):							#Loop 1 for different Temperatures
 		
 		tag = 'I'
 
-		jbname = tag + name + '-T' + str(impvel)	#creating Jobname
+		# Creating Jobname
+		jbname = tag + name + '-T' + str(impvel)	
 
 		print(jbname)
 
-#Opening ODB		
+		# Opening ODB		
 		print("opened")
 		newfile.write("\n #OPENED \n")
 		newfile.writelines(jbname + "\n")
 		odb=openOdb( path= jbname + '.odb')
 
-#Residual velocity, Vr
+		# Residual velocity, Vr
 		Velo = odb.steps['Step-1'].historyRegions[NodeS].historyOutputs[Varb[0]]	
 		New = Velo.data[-1][-1]
 		New = New/1000	
+		
 		print(New)
+		
 		allVels.append(New)
 		
 		T0 = 100
-		
-#Time taken to reduce velocity to 0
+		 
+		# Time taken to reduce velocity to 0
 		for g in range(0,len(Kinetic.data)):
 			if (Kinetic.data[g][1] <= 0):
 				T0 = Kinetic.data[g][0]				
@@ -84,9 +90,10 @@ for v in range (0,1):							#Loop 1 for different Temperatures
 		print(T0)	
 		allT0.append(T0)
 		
-#Displacement
+		# Displacement
 		Disp = odb.steps[Stepname].historyRegions[NodeS].historyOutputs[Varb[1]].data		
 		c = []
+		
 		for i in range (0,len(Disp)):
 			c.append(Disp[i][1])
 			
@@ -94,7 +101,7 @@ for v in range (0,1):							#Loop 1 for different Temperatures
 		allDisp.append(max(c))		
 		print(MaxDisp)
 		
-#Force
+		# Force
 		ns = odb.rootAssembly.instances[Partname].nodeSets['RP']
 
 		dat = []
@@ -113,20 +120,18 @@ for v in range (0,1):							#Loop 1 for different Temperatures
 		allF.append(Fmax)
 		print(Fmax)
 		
-
-#Printing
+		# Printing
 		newfile.writelines(str(New) + "\n")
 		newfile.writelines(str(MaxDisp) + "\n")
 		newfile.writelines(str(Fmax) + "\n")
 		newfile.writelines(str(T0) + "\n")
 		odb.close()
 		
-		
 		print('Job Completed')
 	
 	print('Velocity Set Completed')
 	
-#Print all
+# Print all
 newfile.write("\n")
 newfile.write(str(allVels) + "\n")
 newfile.write(str(allF) + "\n")
